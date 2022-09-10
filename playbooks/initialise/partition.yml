@@ -1,0 +1,31 @@
+---
+- name: Config Data Disk
+  gather_facts: yes
+  become: yes
+  vars:
+    lv_name: 'vdb'
+    fstype: 'ext4'
+
+  tasks:
+    - name: Disk partition
+      parted:
+        device: '/dev/{{ lv_name }}'
+        number: 1
+        state: present
+
+    - name: Disk format
+      filesystem:
+        fstype: '{{ fstype }}'
+        dev: '/dev/{{ lv_name }}1'
+
+    - name: Get UUID
+      shell: blkid /dev/{{ lv_name }}1 | awk '{print $2}'
+      register: uuid
+
+    - name: Mount Disk
+      mount:
+        path: /data
+        src: '{{ uuid.stdout }}'
+        fstype: '{{ fstype }}'
+        opts: defaults, noatime
+        state: mounted

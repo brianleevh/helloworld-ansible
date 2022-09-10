@@ -1,0 +1,14 @@
+[all:vars]
+ansible_port=22
+ansible_user=awx
+ansible_extra_args="-o ControlMaster=auto -o ControlPersist=60s"
+
+[jumpserver-azure]
+jms-azure-sea ansible_host=x.x.x.x
+
+[jumpserver-tcc]
+jms-tcc-apsg ansible_host=x.x.x.x
+
+[jumpserver:children]
+jumpserver-azure
+jumpserver-tcc

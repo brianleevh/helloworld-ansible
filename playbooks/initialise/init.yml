@@ -1,0 +1,48 @@
+---
+- name: OS Initialization
+  hosts: 'all'
+  become: true
+  vars:
+    user_name: 'user00'
+    user_passwd: 'xxx'
+
+  tasks:
+  - name: Install package
+    package:
+      name:
+      - telnet
+      - lrzsz
+      state: present
+
+  - name: Create home directory in data disk
+    file:
+      path: /data/home
+      state: directory
+
+  - name: Create user
+    user:
+      name: '{{ user_name }}'
+      password: '{{ user_passwd | password_hash("sha512") }}'
+      uid: 30000
+      home: '/data/home/{{ user_name }}'
+
+  - name: Make sure 'wheel' group present
+    group:
+      name: wheel
+      state: present
+
+  - name: Add user to sudoer
+    user:
+      name: '{{ user_name }}'
+      groups: wheel
+      append: yes
+
+  - name: Allow 'wheel' group w/o password for sudo
+    lineinfile:
+      dest: /etc/sudoers
+      state: present
+      regexp: '^%wheel'
+      line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+      validate: visudo -cf %s
+
+  
